@@ -1,32 +1,32 @@
-import Html exposing (Html, input, div, text)
-import Html.App as App
-import Html.Attributes exposing (placeholder)
+import Html exposing (Html, div, input, text)
 import Html.Events exposing (onInput)
+import Html.Attributes exposing (placeholder)
+import Html.App as App
 import String
 
-main = App.beginnerProgram { model = model, update = update, view = view }
+main : Program Never
+main = App.beginnerProgram { model = model, view = view , update = update }
 
--- MODEL
+type alias Model = { text : String }
 
-type alias Model = String
 model : Model
-model = ""
+model = { text = "" }
 
--- UPDATE
-
+-- This declares `Change` as a function that returns a `String`
 type Msg = Change String
+
 update : Msg -> Model -> Model
 update msg model =
   case msg of
-    Change string ->
-      string
+    Change newText ->
+      { model | text = String.reverse newText }
 
--- VIEW
-
+-- `view` takes a `Model` and returns an `Html` function, which in turn can return a `Msg`
 view : Model -> Html Msg
 view model =
   div [] [
-    input [placeholder "A man a plan a canal Panama", onInput Change] [],
-    div [] [text ( String.reverse model)]
-
+    -- `onInput` takes the `Change` function type as an argument, and passes the
+    -- actual content of the `input` field as the `String` argument to `Change`
+    input [placeholder "Type something!", onInput Change] [],
+    div [] [text (toString model.text)]
   ]
