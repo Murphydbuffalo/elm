@@ -1,5 +1,4 @@
-import Html exposing (Html, h1, div, text, input)
-import Html.Attributes exposing (type')
+import Html exposing (Html, h1, div, text, button)
 import Html.Events exposing (onClick)
 import Html.App as App
 import Random
@@ -14,30 +13,30 @@ main =
   }
 
 type alias Model = {
-  value : Int
+  dieFace : Int
 }
+
+type Msg = Roll | NewDieFace Int
 
 init : (Model, Cmd Msg)
 init =
   (Model 1, Cmd.none)
 
-type Msg = Roll | NewVal Int
+subscriptions : Model -> (Sub Msg)
+subscriptions model =
+  Sub.none
 
 view : Model -> Html Msg
 view model =
   div [] [
-    h1 [] [text (toString model.value)],
-    input [type' "submit", onClick Roll] [text "Roll!"]
+    h1 [] [text (toString model.dieFace)],
+    button [onClick Roll] [text "Roll"]
   ]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Roll ->
-      (model, Random.generate NewVal (Random.int 1 6))
-    NewVal val ->
-      (Model val, Cmd.none)
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Sub.none
+      (model, Random.generate NewDieFace (Random.int 1 6))
+    NewDieFace randomNumber ->
+      (Model randomNumber, Cmd.none)
