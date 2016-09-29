@@ -1,5 +1,5 @@
 import Html exposing (Html, div, button, input, text)
-import Html.Attributes exposing (placeholder, style, type')
+import Html.Attributes exposing (placeholder, style, type', class, id)
 import Html.Events exposing (onInput, onClick)
 import Html.App as App
 import Regex
@@ -14,7 +14,7 @@ type alias Model = {
   password : String,
   passwordConfirmation : String,
   valid : Bool,
-  errors : String
+  errors : { email : List String, password : List String, passwordConfirmation : List String }
 }
 
 model : Model
@@ -23,7 +23,11 @@ model = {
   password = "",
   passwordConfirmation = "",
   valid = False,
-  errors = ""
+  errors = {
+    email = [],
+    password = [],
+    passwordConfirmation = []
+  }
  }
 
 type Msg = Email String | Password String | PasswordConfirmation String | Submit
@@ -32,73 +36,88 @@ update : Msg -> Model -> Model
 update msg model =
   case msg of
     Email email ->
-      { model | email = email }
+      let
+        existingErrors = model.errors
+        errors =
+          if validEmail email then
+            { existingErrors | email = [] }
+          else if String.length email < 1 then
+            { existingErrors | email = ["Email can't be blank."] }
+          else
+            { existingErrors | email = ["Please enter a valid email."] }
+      in
+        { model | email = email, errors = errors }
     Password password ->
-      { model | password = password }
+      let
+        existingErrors = model.errors
+        errors =
+          if validPassword password then
+            { existingErrors | password = [] }
+          else if String.length password < 1 then
+            { existingErrors | password = ["Email can't be blank."] }
+          else
+            { existingErrors | password = ["Please enter a valid password."] }
+      in
+        { model | password = password, errors = errors }
     PasswordConfirmation passwordConfirmation ->
-      { model | passwordConfirmation = passwordConfirmation }
+      let
+        existingErrors = model.errors
+        errors =
+          if model.password == passwordConfirmation then
+            { existingErrors | passwordConfirmation = [] }
+          else
+            { existingErrors | passwordConfirmation = ["Passwords don't match."] }
+      in
+        { model | passwordConfirmation = passwordConfirmation, errors = errors }
     Submit ->
       let
-        (valid, errors) =
+        valid =
           isValid model
 
         updatedModel =
-          { model | valid = valid, errors = errors }
+          { model | valid = valid }
       in
         attemptSubmit updatedModel
 
 view : Model -> Html Msg
 view model =
-  div [] [
-    input [type' "email", placeholder "Email", onInput Email] [],
-    input [type' "password", placeholder "Password", onInput Password] [],
-    input [type' "password", placeholder "Password Confirmation", onInput PasswordConfirmation] [],
-    div [] [
-      button [type' "submit", onClick Submit] [text "Submit"],
-      div [style [("color", "red")]] [text model.errors]
+  div [class "form", id "registration-form"] [
+    div [class "field", id "email"] [
+      input [type' "email", placeholder "Email", onInput Email] [],
+      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.email)]
+    ],
+
+    div [class "field", id "password"] [
+      input [type' "password", placeholder "Password", onInput Password] [],
+      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.password)]
+    ],
+
+    div [class "field", id "passwordConfirmation"] [
+      input [type' "password", placeholder "Password Confirmation", onInput PasswordConfirmation] [],
+      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.passwordConfirmation)]
+    ],
+
+    div [class "button", id "submit"] [
+      button [type' "submit", onClick Submit] [text "Submit"]
     ]
   ]
 
-isValid : Model -> (Bool, String)
+isValid : Model -> Bool
 isValid model =
   let
     emailIsValid : Bool
-    emailIsValid = validEmail model.email
+    emailIsValid = List.isEmpty model.errors.email
 
     passwordIsValid : Bool
-    passwordIsValid = validPassword model.password
+    passwordIsValid = List.isEmpty model.errors.password
 
     passwordsMatch : Bool
-    passwordsMatch = model.password == model.passwordConfirmation
+    passwordsMatch = List.isEmpty model.errors.passwordConfirmation
 
     valid : Bool
     valid = emailIsValid && passwordIsValid && passwordsMatch
-
-    emailErrorMessage : String
-    emailErrorMessage =
-      if not emailIsValid then
-        "Please enter a valid email. "
-      else
-        ""
-
-    passwordErrorMessage : String
-    passwordErrorMessage =
-      if not passwordIsValid then
-        "Please enter a valid password. "
-      else
-        ""
-
-    passwordMatchErrorMessage : String
-    passwordMatchErrorMessage =
-      if not passwordsMatch then
-        "Please enter a matching password and password confirmation. "
-      else
-        ""
-
-    errors : String
-    errors = emailErrorMessage ++ passwordErrorMessage ++ passwordMatchErrorMessage
   in
-    (valid, errors)
+    valid
 
 validEmail : String -> Bool
 validEmail email =

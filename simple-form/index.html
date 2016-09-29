@@ -8014,46 +8014,103 @@ var _user$project$Main$validEmail = function (email) {
 	return A2(_elm_lang$core$Regex$contains, regex, email);
 };
 var _user$project$Main$isValid = function (model) {
-	var passwordsMatch = _elm_lang$core$Native_Utils.eq(model.password, model.passwordConfirmation);
-	var passwordMatchErrorMessage = _elm_lang$core$Basics$not(passwordsMatch) ? 'Please enter a matching password and password confirmation. ' : '';
-	var passwordIsValid = _user$project$Main$validPassword(model.password);
-	var passwordErrorMessage = _elm_lang$core$Basics$not(passwordIsValid) ? 'Please enter a valid password. ' : '';
-	var emailIsValid = _user$project$Main$validEmail(model.email);
+	var passwordsMatch = _elm_lang$core$List$isEmpty(model.errors.passwordConfirmation);
+	var passwordIsValid = _elm_lang$core$List$isEmpty(model.errors.password);
+	var emailIsValid = _elm_lang$core$List$isEmpty(model.errors.email);
 	var valid = emailIsValid && (passwordIsValid && passwordsMatch);
-	var emailErrorMessage = _elm_lang$core$Basics$not(emailIsValid) ? 'Please enter a valid email. ' : '';
-	var errors = A2(
-		_elm_lang$core$Basics_ops['++'],
-		emailErrorMessage,
-		A2(_elm_lang$core$Basics_ops['++'], passwordErrorMessage, passwordMatchErrorMessage));
-	return {ctor: '_Tuple2', _0: valid, _1: errors};
+	return valid;
 };
 var _user$project$Main$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
 		switch (_p0.ctor) {
 			case 'Email':
+				var _p1 = _p0._0;
+				var existingErrors = model.errors;
+				var errors = _user$project$Main$validEmail(_p1) ? _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						email: _elm_lang$core$Native_List.fromArray(
+							[])
+					}) : ((_elm_lang$core$Native_Utils.cmp(
+					_elm_lang$core$String$length(_p1),
+					1) < 0) ? _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						email: _elm_lang$core$Native_List.fromArray(
+							['Email can\'t be blank.'])
+					}) : _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						email: _elm_lang$core$Native_List.fromArray(
+							['Please enter a valid email.'])
+					}));
 				return _elm_lang$core$Native_Utils.update(
 					model,
-					{email: _p0._0});
+					{email: _p1, errors: errors});
 			case 'Password':
+				var _p2 = _p0._0;
+				var existingErrors = model.errors;
+				var errors = _user$project$Main$validPassword(_p2) ? _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						password: _elm_lang$core$Native_List.fromArray(
+							[])
+					}) : ((_elm_lang$core$Native_Utils.cmp(
+					_elm_lang$core$String$length(_p2),
+					1) < 0) ? _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						password: _elm_lang$core$Native_List.fromArray(
+							['Email can\'t be blank.'])
+					}) : _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						password: _elm_lang$core$Native_List.fromArray(
+							['Please enter a valid password.'])
+					}));
 				return _elm_lang$core$Native_Utils.update(
 					model,
-					{password: _p0._0});
+					{password: _p2, errors: errors});
 			case 'PasswordConfirmation':
+				var _p3 = _p0._0;
+				var existingErrors = model.errors;
+				var errors = _elm_lang$core$Native_Utils.eq(model.password, _p3) ? _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						passwordConfirmation: _elm_lang$core$Native_List.fromArray(
+							[])
+					}) : _elm_lang$core$Native_Utils.update(
+					existingErrors,
+					{
+						passwordConfirmation: _elm_lang$core$Native_List.fromArray(
+							['Passwords don\'t match.'])
+					});
 				return _elm_lang$core$Native_Utils.update(
 					model,
-					{passwordConfirmation: _p0._0});
+					{passwordConfirmation: _p3, errors: errors});
 			default:
-				var _p1 = _user$project$Main$isValid(model);
-				var valid = _p1._0;
-				var errors = _p1._1;
+				var valid = _user$project$Main$isValid(model);
 				var updatedModel = _elm_lang$core$Native_Utils.update(
 					model,
-					{valid: valid, errors: errors});
+					{valid: valid});
 				return _user$project$Main$attemptSubmit(updatedModel);
 		}
 	});
-var _user$project$Main$model = {email: '', password: '', passwordConfirmation: '', valid: false, errors: ''};
+var _user$project$Main$model = {
+	email: '',
+	password: '',
+	passwordConfirmation: '',
+	valid: false,
+	errors: {
+		email: _elm_lang$core$Native_List.fromArray(
+			[]),
+		password: _elm_lang$core$Native_List.fromArray(
+			[]),
+		passwordConfirmation: _elm_lang$core$Native_List.fromArray(
+			[])
+	}
+};
 var _user$project$Main$Model = F5(
 	function (a, b, c, d, e) {
 		return {email: a, password: b, passwordConfirmation: c, valid: d, errors: e};
@@ -8072,43 +8129,127 @@ var _user$project$Main$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
-			[]),
+			[
+				_elm_lang$html$Html_Attributes$class('form'),
+				_elm_lang$html$Html_Attributes$id('registration-form')
+			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
 				A2(
-				_elm_lang$html$Html$input,
+				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$type$('email'),
-						_elm_lang$html$Html_Attributes$placeholder('Email'),
-						_elm_lang$html$Html_Events$onInput(_user$project$Main$Email)
+						_elm_lang$html$Html_Attributes$class('field'),
+						_elm_lang$html$Html_Attributes$id('email')
 					]),
-				_elm_lang$core$Native_List.fromArray(
-					[])),
-				A2(
-				_elm_lang$html$Html$input,
 				_elm_lang$core$Native_List.fromArray(
 					[
-						_elm_lang$html$Html_Attributes$type$('password'),
-						_elm_lang$html$Html_Attributes$placeholder('Password'),
-						_elm_lang$html$Html_Events$onInput(_user$project$Main$Password)
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[])),
-				A2(
-				_elm_lang$html$Html$input,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$type$('password'),
-						_elm_lang$html$Html_Attributes$placeholder('Password Confirmation'),
-						_elm_lang$html$Html_Events$onInput(_user$project$Main$PasswordConfirmation)
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[])),
+						A2(
+						_elm_lang$html$Html$input,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$type$('email'),
+								_elm_lang$html$Html_Attributes$placeholder('Email'),
+								_elm_lang$html$Html_Events$onInput(_user$project$Main$Email)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('errors'),
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'color', _1: 'red'}
+									]))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(
+								A2(_elm_lang$core$String$join, ' ', model.errors.email))
+							]))
+					])),
 				A2(
 				_elm_lang$html$Html$div,
 				_elm_lang$core$Native_List.fromArray(
-					[]),
+					[
+						_elm_lang$html$Html_Attributes$class('field'),
+						_elm_lang$html$Html_Attributes$id('password')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$input,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$type$('password'),
+								_elm_lang$html$Html_Attributes$placeholder('Password'),
+								_elm_lang$html$Html_Events$onInput(_user$project$Main$Password)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('errors'),
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'color', _1: 'red'}
+									]))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(
+								A2(_elm_lang$core$String$join, ' ', model.errors.password))
+							]))
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('field'),
+						_elm_lang$html$Html_Attributes$id('passwordConfirmation')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$input,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$type$('password'),
+								_elm_lang$html$Html_Attributes$placeholder('Password Confirmation'),
+								_elm_lang$html$Html_Events$onInput(_user$project$Main$PasswordConfirmation)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[])),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$class('errors'),
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'color', _1: 'red'}
+									]))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(
+								A2(_elm_lang$core$String$join, ' ', model.errors.passwordConfirmation))
+							]))
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('button'),
+						_elm_lang$html$Html_Attributes$id('submit')
+					]),
 				_elm_lang$core$Native_List.fromArray(
 					[
 						A2(
@@ -8121,20 +8262,6 @@ var _user$project$Main$view = function (model) {
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_elm_lang$html$Html$text('Submit')
-							])),
-						A2(
-						_elm_lang$html$Html$div,
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_elm_lang$html$Html_Attributes$style(
-								_elm_lang$core$Native_List.fromArray(
-									[
-										{ctor: '_Tuple2', _0: 'color', _1: 'red'}
-									]))
-							]),
-						_elm_lang$core$Native_List.fromArray(
-							[
-								_elm_lang$html$Html$text(model.errors)
 							]))
 					]))
 			]));
