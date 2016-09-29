@@ -39,13 +39,14 @@ update msg model =
 fetchGif : String -> Cmd Msg
 fetchGif category =
   let
-    url =
+    urlJSON =
       "https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=" ++ category
   in
-    Task.perform HttpFailure HttpSuccess (Http.get decodeUrl url)
+    Task.perform HttpFailure HttpSuccess (Http.get decodeUrl urlJSON)
 
 decodeUrl : Json.Decoder String
 decodeUrl =
+  -- Try to access `.data.image_url` in the passed in JSON, and attempt to return a string
   Json.at ["data", "image_url"] Json.string
 
 
