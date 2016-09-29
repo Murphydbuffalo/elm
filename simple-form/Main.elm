@@ -1,4 +1,4 @@
-import Html exposing (Html, div, button, input, text)
+import Html exposing (Html, div, button, input, text, br)
 import Html.Attributes exposing (placeholder, style, type', class, id)
 import Html.Events exposing (onInput, onClick)
 import Html.App as App
@@ -39,34 +39,25 @@ update msg model =
       let
         existingErrors = model.errors
         errors =
-          if validEmail email then
-            { existingErrors | email = [] }
-          else if String.length email < 1 then
-            { existingErrors | email = ["Email can't be blank."] }
-          else
-            { existingErrors | email = ["Please enter a valid email."] }
+          { existingErrors | email = (validateEmail email) }
       in
         { model | email = email, errors = errors }
     Password password ->
       let
         existingErrors = model.errors
         errors =
-          if validPassword password then
-            { existingErrors | password = [] }
-          else if String.length password < 1 then
-            { existingErrors | password = ["Email can't be blank."] }
-          else
-            { existingErrors | password = ["Please enter a valid password."] }
+          {
+            existingErrors |
+            password = (validatePassword password),
+            passwordConfirmation = (validatePasswordsMatch password model.passwordConfirmation)
+          }
       in
         { model | password = password, errors = errors }
     PasswordConfirmation passwordConfirmation ->
       let
         existingErrors = model.errors
         errors =
-          if model.password == passwordConfirmation then
-            { existingErrors | passwordConfirmation = [] }
-          else
-            { existingErrors | passwordConfirmation = ["Passwords don't match."] }
+          { existingErrors | passwordConfirmation = validatePasswordsMatch model.password passwordConfirmation }
       in
         { model | passwordConfirmation = passwordConfirmation, errors = errors }
     Submit ->
@@ -84,17 +75,20 @@ view model =
   div [class "form", id "registration-form"] [
     div [class "field", id "email"] [
       input [type' "email", placeholder "Email", onInput Email] [],
-      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.email)]
+      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.email)],
+      br [] []
     ],
 
     div [class "field", id "password"] [
       input [type' "password", placeholder "Password", onInput Password] [],
-      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.password)]
+      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.password)],
+      br [] []
     ],
 
     div [class "field", id "passwordConfirmation"] [
-      input [type' "password", placeholder "Password Confirmation", onInput PasswordConfirmation] [],
-      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.passwordConfirmation)]
+      input [type' "password", placeholder "Confirm Password", onInput PasswordConfirmation] [],
+      div [class "errors", style [("color", "red")]] [text (String.join " " model.errors.passwordConfirmation)],
+      br [] []
     ],
 
     div [class "button", id "submit"] [
@@ -119,20 +113,49 @@ isValid model =
   in
     valid
 
-validEmail : String -> Bool
-validEmail email =
+validateEmail : String -> List String
+validateEmail email =
   let
     regex =
       Regex.regex ".+@.+\\..+"
-  in
-    Regex.contains regex email
 
-validPassword : String -> Bool
-validPassword password =
-  String.length password > 7 &&
-  String.any Char.isDigit password &&
-  String.any Char.isUpper password &&
-  String.any Char.isLower password
+    errors =
+      if Regex.contains regex email then
+        []
+      else if String.length email < 1 then
+        ["Email can't be blank."]
+      else
+        ["Please enter a valid email."]
+
+  in
+    errors
+
+validatePassword : String -> List String
+validatePassword password =
+  let
+    errors =
+      if String.length password < 8 then
+        ["Please enter a password with at least 8 characters."]
+      else if not (passwordHasRequiredChars password) then
+        ["Please enter a password with at least one upper case letter, one lower case letter, and one number."]
+      else
+        []
+
+  in
+    errors
+
+validatePasswordsMatch : String -> String -> List String
+validatePasswordsMatch password passwordConfirmation =
+  if password == passwordConfirmation then
+    []
+  else
+    ["Passwords don't match."]
+
+passwordHasRequiredChars : String -> Bool
+passwordHasRequiredChars string =
+  String.any Char.isDigit string &&
+  String.any Char.isUpper string &&
+  String.any Char.isLower string
 
 attemptSubmit : Model -> Model
 attemptSubmit model =

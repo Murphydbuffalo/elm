@@ -8004,14 +8004,34 @@ var _elm_lang$html$Html_Events$Options = F2(
 var _user$project$Main$attemptSubmit = function (model) {
 	return model;
 };
-var _user$project$Main$validPassword = function (password) {
-	return (_elm_lang$core$Native_Utils.cmp(
-		_elm_lang$core$String$length(password),
-		7) > 0) && (A2(_elm_lang$core$String$any, _elm_lang$core$Char$isDigit, password) && (A2(_elm_lang$core$String$any, _elm_lang$core$Char$isUpper, password) && A2(_elm_lang$core$String$any, _elm_lang$core$Char$isLower, password)));
+var _user$project$Main$passwordHasRequiredChars = function (string) {
+	return A2(_elm_lang$core$String$any, _elm_lang$core$Char$isDigit, string) && (A2(_elm_lang$core$String$any, _elm_lang$core$Char$isUpper, string) && A2(_elm_lang$core$String$any, _elm_lang$core$Char$isLower, string));
 };
-var _user$project$Main$validEmail = function (email) {
+var _user$project$Main$validatePasswordsMatch = F2(
+	function (password, passwordConfirmation) {
+		return _elm_lang$core$Native_Utils.eq(password, passwordConfirmation) ? _elm_lang$core$Native_List.fromArray(
+			[]) : _elm_lang$core$Native_List.fromArray(
+			['Passwords don\'t match.']);
+	});
+var _user$project$Main$validatePassword = function (password) {
+	var errors = (_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$String$length(password),
+		8) < 0) ? _elm_lang$core$Native_List.fromArray(
+		['Please enter a password with at least 8 characters.']) : (_elm_lang$core$Basics$not(
+		_user$project$Main$passwordHasRequiredChars(password)) ? _elm_lang$core$Native_List.fromArray(
+		['Please enter a password with at least one upper case letter, one lower case letter, and one number.']) : _elm_lang$core$Native_List.fromArray(
+		[]));
+	return errors;
+};
+var _user$project$Main$validateEmail = function (email) {
 	var regex = _elm_lang$core$Regex$regex('.+@.+\\..+');
-	return A2(_elm_lang$core$Regex$contains, regex, email);
+	var errors = A2(_elm_lang$core$Regex$contains, regex, email) ? _elm_lang$core$Native_List.fromArray(
+		[]) : ((_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$String$length(email),
+		1) < 0) ? _elm_lang$core$Native_List.fromArray(
+		['Email can\'t be blank.']) : _elm_lang$core$Native_List.fromArray(
+		['Please enter a valid email.']));
+	return errors;
 };
 var _user$project$Main$isValid = function (model) {
 	var passwordsMatch = _elm_lang$core$List$isEmpty(model.errors.passwordConfirmation);
@@ -8027,64 +8047,33 @@ var _user$project$Main$update = F2(
 			case 'Email':
 				var _p1 = _p0._0;
 				var existingErrors = model.errors;
-				var errors = _user$project$Main$validEmail(_p1) ? _elm_lang$core$Native_Utils.update(
+				var errors = _elm_lang$core$Native_Utils.update(
 					existingErrors,
 					{
-						email: _elm_lang$core$Native_List.fromArray(
-							[])
-					}) : ((_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$String$length(_p1),
-					1) < 0) ? _elm_lang$core$Native_Utils.update(
-					existingErrors,
-					{
-						email: _elm_lang$core$Native_List.fromArray(
-							['Email can\'t be blank.'])
-					}) : _elm_lang$core$Native_Utils.update(
-					existingErrors,
-					{
-						email: _elm_lang$core$Native_List.fromArray(
-							['Please enter a valid email.'])
-					}));
+						email: _user$project$Main$validateEmail(_p1)
+					});
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{email: _p1, errors: errors});
 			case 'Password':
 				var _p2 = _p0._0;
 				var existingErrors = model.errors;
-				var errors = _user$project$Main$validPassword(_p2) ? _elm_lang$core$Native_Utils.update(
+				var errors = _elm_lang$core$Native_Utils.update(
 					existingErrors,
 					{
-						password: _elm_lang$core$Native_List.fromArray(
-							[])
-					}) : ((_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$String$length(_p2),
-					1) < 0) ? _elm_lang$core$Native_Utils.update(
-					existingErrors,
-					{
-						password: _elm_lang$core$Native_List.fromArray(
-							['Email can\'t be blank.'])
-					}) : _elm_lang$core$Native_Utils.update(
-					existingErrors,
-					{
-						password: _elm_lang$core$Native_List.fromArray(
-							['Please enter a valid password.'])
-					}));
+						password: _user$project$Main$validatePassword(_p2),
+						passwordConfirmation: A2(_user$project$Main$validatePasswordsMatch, _p2, model.passwordConfirmation)
+					});
 				return _elm_lang$core$Native_Utils.update(
 					model,
 					{password: _p2, errors: errors});
 			case 'PasswordConfirmation':
 				var _p3 = _p0._0;
 				var existingErrors = model.errors;
-				var errors = _elm_lang$core$Native_Utils.eq(model.password, _p3) ? _elm_lang$core$Native_Utils.update(
+				var errors = _elm_lang$core$Native_Utils.update(
 					existingErrors,
 					{
-						passwordConfirmation: _elm_lang$core$Native_List.fromArray(
-							[])
-					}) : _elm_lang$core$Native_Utils.update(
-					existingErrors,
-					{
-						passwordConfirmation: _elm_lang$core$Native_List.fromArray(
-							['Passwords don\'t match.'])
+						passwordConfirmation: A2(_user$project$Main$validatePasswordsMatch, model.password, _p3)
 					});
 				return _elm_lang$core$Native_Utils.update(
 					model,
@@ -8169,7 +8158,13 @@ var _user$project$Main$view = function (model) {
 							[
 								_elm_lang$html$Html$text(
 								A2(_elm_lang$core$String$join, ' ', model.errors.email))
-							]))
+							])),
+						A2(
+						_elm_lang$html$Html$br,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[]))
 					])),
 				A2(
 				_elm_lang$html$Html$div,
@@ -8205,7 +8200,13 @@ var _user$project$Main$view = function (model) {
 							[
 								_elm_lang$html$Html$text(
 								A2(_elm_lang$core$String$join, ' ', model.errors.password))
-							]))
+							])),
+						A2(
+						_elm_lang$html$Html$br,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[]))
 					])),
 				A2(
 				_elm_lang$html$Html$div,
@@ -8221,7 +8222,7 @@ var _user$project$Main$view = function (model) {
 						_elm_lang$core$Native_List.fromArray(
 							[
 								_elm_lang$html$Html_Attributes$type$('password'),
-								_elm_lang$html$Html_Attributes$placeholder('Password Confirmation'),
+								_elm_lang$html$Html_Attributes$placeholder('Confirm Password'),
 								_elm_lang$html$Html_Events$onInput(_user$project$Main$PasswordConfirmation)
 							]),
 						_elm_lang$core$Native_List.fromArray(
@@ -8241,7 +8242,13 @@ var _user$project$Main$view = function (model) {
 							[
 								_elm_lang$html$Html$text(
 								A2(_elm_lang$core$String$join, ' ', model.errors.passwordConfirmation))
-							]))
+							])),
+						A2(
+						_elm_lang$html$Html$br,
+						_elm_lang$core$Native_List.fromArray(
+							[]),
+						_elm_lang$core$Native_List.fromArray(
+							[]))
 					])),
 				A2(
 				_elm_lang$html$Html$div,
