@@ -1,4 +1,4 @@
-import Html exposing (Html, div, button, input, text, br)
+import Html exposing (Html, div, button, input, text, br, fieldset, label)
 import Html.Attributes exposing (placeholder, style, type', class, id)
 import Html.Events exposing (onInput, onClick)
 import Html.App as App
@@ -13,6 +13,7 @@ type alias Model = {
   email : String,
   password : String,
   passwordConfirmation : String,
+  rememberUser: Bool,
   valid : Bool,
   errors : { email : List String, password : List String, passwordConfirmation : List String }
 }
@@ -22,6 +23,7 @@ model = {
   email = "",
   password = "",
   passwordConfirmation = "",
+  rememberUser = False,
   valid = False,
   errors = {
     email = [],
@@ -30,7 +32,7 @@ model = {
   }
  }
 
-type Msg = Email String | Password String | PasswordConfirmation String | Submit
+type Msg = Email String | Password String | PasswordConfirmation String | RememberUser | Submit
 
 update : Msg -> Model -> Model
 update msg model =
@@ -60,6 +62,8 @@ update msg model =
           { existingErrors | passwordConfirmation = validatePasswordsMatch model.password passwordConfirmation }
       in
         { model | passwordConfirmation = passwordConfirmation, errors = errors }
+    RememberUser ->
+      { model | rememberUser = (not model.rememberUser) }
     Submit ->
       let
         valid =
@@ -91,9 +95,21 @@ view model =
       br [] []
     ],
 
+    div [class "field", id "rememberUser"] [
+      fieldset [] [checkbox RememberUser "Remember Me"],
+      br [] []
+    ],
+
     div [class "button", id "submit"] [
       button [type' "submit", onClick Submit] [text "Submit"]
     ]
+  ]
+
+checkbox : Msg -> String -> Html Msg
+checkbox msg string =
+  label [] [
+    input [type' "checkbox", onClick msg] [],
+    (text string)
   ]
 
 isValid : Model -> Bool
