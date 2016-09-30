@@ -8317,7 +8317,7 @@ var _user$project$Main$update = F2(
 				ctor: '_Tuple2',
 				_0: _elm_lang$core$Native_Utils.update(
 					model,
-					{time: _p0._0}),
+					{time: model.time + 1}),
 				_1: _elm_lang$core$Platform_Cmd$none
 			};
 		} else {
@@ -8343,8 +8343,7 @@ var _user$project$Main$Model = F2(
 	});
 var _user$project$Main$Pause = {ctor: 'Pause'};
 var _user$project$Main$view = function (model) {
-	var angle = _elm_lang$core$Basics$turns(
-		_elm_lang$core$Time$inMinutes(model.time));
+	var angle = _elm_lang$core$Basics$turns(model.time / 60);
 	var handX = _elm_lang$core$Basics$toString(
 		50 + (40 * _elm_lang$core$Basics$cos(angle)));
 	var handY = _elm_lang$core$Basics$toString(

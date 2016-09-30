@@ -14,8 +14,7 @@ main =
     view = view
   }
 
-type alias Model = { time : Time, paused : Bool }
-
+type alias Model = { time : Float, paused : Bool }
 type Msg = Tick Time | Pause
 
 init : (Model, Cmd Msg)
@@ -28,14 +27,13 @@ update msg model =
       if model.paused then
         (model, Cmd.none)
       else
-        ({ model | time = time }, Cmd.none)
+        ({ model | time = model.time + 1 }, Cmd.none)
     Pause ->
       ({ model | paused = not model.paused }, Cmd.none)
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   -- Every second, get the time in milliseconds and pass it to the Tick function
-  -- Calls to Tick are passed automatically to update
   Time.every second Tick
 
 view : Model -> Html Msg
@@ -43,8 +41,8 @@ view model =
   let
     angle =
       -- `turns` converts floats to radians. 1.0 is equivalent to 360 degrees and 2pi or 6.28 radians
-      -- Time.inMinutes converts milliseconds to minutes represented as a float
-      turns (Time.inMinutes model.time)
+      -- So, every minute (60/60) `angle` will have increased by another 360 degrees
+      turns (model.time / 60)
     handX =
       toString (50 + (40 * cos angle))
     handY =
